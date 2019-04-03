@@ -10,3 +10,25 @@
     <script src="js/script.js" async></script>
 
 </head>
+<body>
+  <div class="container-fluid" style="width: 95%; padding-top: 20px">
+    <h4>Uncertainty Visualization for Superconductor Simulation Data</h4>
+    <table>
+        <tr>
+            <td id="container" width="650px" height = "650px" style="border: 2px solid grey; background-color: white" rowspan="2">
+                                        
+                    
+                    <svg id="kde" style="position: absolute; top:60px; left:60px; z-index:1" width="600" height="600"></svg>
+                
+            </td>
+            <td id="button-group" style="vertical-align: top; padding: 20px; border: 2px solid grey">
+                    <h4>Control Panel</h4>
+                    <br> 
+                    <p><input type="checkbox" id="kde2d" value="2D KDE"> 2D KDE</p>  
+                    <p><input type="checkbox" id="kde3d" value="3D KDE"> 3D KDE</p>
+            </td>
+          </tr>
+
+    </table>
+  </div>
+</body>
