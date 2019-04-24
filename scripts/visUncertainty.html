@@ -7,6 +7,9 @@
     <link rel="shortcut icon" href="#" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+    <!-- <script src="https://unpkg.com/d3-3d/build/d3-3d.js"></script> -->
+    <script src="js/surface3d.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="js/script.js" async></script>
 
 </head>
@@ -18,14 +21,14 @@
             <td id="container" width="650px" height = "650px" style="border: 2px solid grey; background-color: white" rowspan="2">
                                         
                     
-                    <svg id="kde" style="position: absolute; top:60px; left:60px; z-index:1" width="600" height="600"></svg>
+                    <svg id="kde" style="position: absolute; top:80px; left:80px; z-index:1" width="600" height="600"></svg>
                 
             </td>
             <td id="button-group" style="vertical-align: top; padding: 20px; border: 2px solid grey">
-                    <h4>Control Panel</h4>
-                    <br> 
-                    <p><input type="checkbox" id="kde2d" value="2D KDE"> 2D KDE</p>  
-                    <p><input type="checkbox" id="kde3d" value="3D KDE"> 3D KDE</p>
+                    <!-- <h4>Control Panel</h4> -->
+                    <!-- <br>  -->
+                    <p><input type="button" id="kde2d" value="2D Version"></p>  
+                    <p><input type="button" id="kde3d" value="3D Version"></p>
             </td>
           </tr>
 
