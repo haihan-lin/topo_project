@@ -1,4 +1,4 @@
-d3.csv("../kdeMesh.csv").then(kde=>{
+d3.csv("../kde.csv").then(kde=>{
     let svgWidth = 600;
     let svgHeight = 600;
 
@@ -22,7 +22,7 @@ d3.csv("../kdeMesh.csv").then(kde=>{
           type: 'surface'
         }
       ];
-    
+
     for(let i=0;i<140;i++){
         let zz = [];
         for(let j=0;j<60;j++){
@@ -80,7 +80,7 @@ d3.csv("../kdeMesh.csv").then(kde=>{
     //     // console.log(d)
     //     let xId = Math.floor((x-xRange_new.min)/xStep);
     //     let yId = Math.floor((y-yRange_new.min)/yStep);
-    //     let meshId = xId*100+yId; 
+    //     let meshId = xId*100+yId;
         if(d>maxKDE){
             maxKDE = d;
         }
@@ -102,7 +102,7 @@ d3.csv("../kdeMesh.csv").then(kde=>{
 
     d3.select("#kde").append("g")
         .attr("id","meshgroup");
-    
+
     let kdeRect = d3.select("#meshgroup").selectAll("rect").data(kde);
     kdeRect.exit().remove();
     let newKdeRect = kdeRect.enter().append("rect");
@@ -118,12 +118,12 @@ d3.csv("../kdeMesh.csv").then(kde=>{
         // .style("visibility","hidden")
     // let ul=d3.select('#container')
     //        .append('ul');
-    
+
     // let surfaceGroup = d3.select("#kde").append("g")
     //                     .attr("id","surfacegroup");
     // surfaceGroup.data(mesh_2d)
     //     .surface3D(svgWidth,svgHeight)
-    //     .surfaceHeight(function(d){ 
+    //     .surfaceHeight(function(d){
     //         return d;
     //       }).surfaceColor(function(d){
     //         var c=d3.hsl((d+100), 0.6, 0.5).rgb();
@@ -134,7 +134,7 @@ d3.csv("../kdeMesh.csv").then(kde=>{
     //     }).on("mouseup",function(){
     //         drag=false;
     //       }).on("mousemove",function(){
-    //         if(drag){            
+    //         if(drag){
     //           var mouse=d3.mouse(this);
     //           yaw=drag[1]-(mouse[0]-drag[0][0])/50;
     //           pitch=drag[2]+(mouse[1]-drag[0][1])/50;
@@ -146,25 +146,21 @@ d3.csv("../kdeMesh.csv").then(kde=>{
         .on("click",()=>{
             console.log("clicking")
             d3.select("#kde")
-                .style("visibility","visible");   
+                .style("visibility","visible");
             d3.select(".plot-container")
                 .style("visibility","hidden");
         })
     d3.select("#kde3d")
         .on("click",()=>{
             d3.select("#kde")
-                .style("visibility","hidden"); 
+                .style("visibility","hidden");
             d3.select(".plot-container")
-                .style("visibility","visible");           
+                .style("visibility","visible");
         })
 
-    
 
     // *** TODO: find local maximum & saddle of Morse complex
 
     // *** TODO: extract ridge from the complex, and visualize the ridge
-
-
-
 
 })
