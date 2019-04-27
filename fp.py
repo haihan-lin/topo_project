@@ -97,11 +97,33 @@ curves_list1["2dKDE"] = density
 data  = curves_list[:,1:]
 data = data.T
 
+## find range of Z
+temp = curves_list1.iloc[:,3]
+max(temp)
+min(temp)
+
+X = np.arange(-70, 70, 2)
+Y = np.arange(-30, 30, 2)
+Z = np.arange(-5,5,0.2)
+mesh = np.zeros(3)
+for i in range(len(X)):
+    print(i)
+    for j in range(len(Y)):
+        for k in range(len(Z)):
+            mesh = np.vstack((mesh,[X[i],Y[j],Z[k]]))
+mesh = mesh[1:,:]
+
+
 kde = stats.gaussian_kde(data)
-density1 = kde(data)
+density1 = kde(mesh.T)
+
+mesh = pd.DataFrame(mesh)
+mesh.columns = ["x","y","z"]
+mesh["3dKDE"] = density1
+mesh.to_csv(path+"kdeMesh3d.csv",index=False)
 
 fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
-x, y, z = data
+x, y, z = X,Y,Z
 ax.scatter(x, y, z, c=density1)
 #plt.show()
 plt.savefig(path+"3dKDE")
@@ -110,7 +132,12 @@ curves_list1["3dKDE"] = density1
 
 curves_list1.to_csv(path+"kde.csv",index=False)
 
+#kde = pd.read_csv(path+"topo_project/kdeMesh.csv")
+
+
 #img = cv2.imread(path+"kdeColor.jpg",0)
+#filtered = cv2.ximgproc_RidgeDetectionFilter.getRidgeFilteredImage(img)
+
 #img1 = img[:,:,0]
 #high_thresh, thresh_im = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 #lowThresh = 0.5*high_thresh
