@@ -4,6 +4,8 @@
     <title>Uncertainty Visualization</title>
     <script src="https://d3js.org/d3.v5.js"></script>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://unpkg.com/d3-simple-slider"></script>
+
     <link rel="shortcut icon" href="#" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
@@ -22,14 +24,22 @@
 
 
                     <svg id="kde" style="position: absolute; top:80px; left:80px; z-index:1" width="600" height="600"></svg>
-                    <svg id="slider"></svg>
+                    <svg id="slider" width = '600' height = '100'>
+
+                    </svg>
 
             </td>
             <td id="button-group" style="vertical-align: top; padding: 20px; border: 2px solid grey">
                     <!-- <h4>Control Panel</h4> -->
                     <!-- <br>  -->
-                    <p><input type="button" id="kde2d" value="2D Version"></p>
-                    <p><input type="button" id="kde3d" value="3D Version"></p>
+                    <!-- <p><input type="button" id="kde2d" value="2D Version"></p> -->
+            <p> Select a dimension to be fixed: </p>
+            <p><form id="dimensions">
+              <input  type='radio' id="x" name="mode" checked>X</input>
+              <input type='radio' id="y" name="mode">Y</input>
+            	<input type='radio' id="z" name="mode">Z</input>
+            </form></p>
+            <p><input type="button" id="kde_select" value="KDE"></p>
             </td>
           </tr>
 

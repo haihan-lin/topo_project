@@ -1,10 +1,22 @@
-d3.csv("../kde.csv").then(kde=>{
+d3.csv("../kdeMesh3d.csv").then(kde=>{
+  let xArray = new Set([])
+  let yArray = new Set([])
+  let zArray = new Set([])
+    kde.forEach(dataEntry=>{
+      dataEntry.x = parseFloat(dataEntry.x)
+      dataEntry.y = parseFloat(dataEntry.y)
+      dataEntry.z =parseFloat( d3.format('.2f')(dataEntry.z))
+    //  dataEntry['3dKDE'] = parseFloat(dataEntry['3dKDE'])
+      xArray.add(dataEntry.x)
+      yArray.add(dataEntry.y)
+      zArray.add(dataEntry.z)
+    })
     let svgWidth = 600;
     let svgHeight = 600;
-
-    console.log(kde)
-    let layout = {
-        // title: 'Mt Bruno Elevation',
+    xArray = Array.from(xArray).sort(d3.ascending)
+    yArray = Array.from(yArray).sort(d3.ascending)
+    zArray = Array.from(zArray).sort(d3.ascending)
+    const layout = {
         autosize: false,
         width: 600,
         height: 600,
@@ -16,24 +28,130 @@ d3.csv("../kde.csv").then(kde=>{
         }
     };
 
-    let data = [
-        {
-          z: [],
-          type: 'surface'
-        }
-      ];
+    let dataToDraw = [
+       {
+         z: [],
+         type: 'surface'
+       }
+     ];
 
-    for(let i=0;i<140;i++){
-        let zz = [];
-        for(let j=0;j<60;j++){
-            // console.log(i,j)
-            zz.push(kde[i*60+j]["2dKDE"])
-        }
-        data[0].z.push(zz)
+   for(let y=-30;y <= 28;y+=2){
+       let zz = [];
+       for(let z=-5;z <= 4.8; z +=0.2){
+           // console.log(i,j)
+           zz.push(findValue(0, y, z))
+       }
+       dataToDraw[0].z.push(zz)
+   };
+   Plotly.newPlot('container', dataToDraw, layout);
+    let selectedDimension = 'x';
+    drawXSlider()
+    function changeDimension(){
+      const form = document.getElementById('dimensions')
+      if (form[0].checked){
+        selectedDimension = 'x'
+        drawXSlider()
+      }
+      else if (form[1].checked){
+        selectedDimension = 'y'
+        drawYSlider()
+      }
+      else if (form[2].checked){
+        selectedDimension = 'z'
+        drawZSlider()
+      }
     }
-    console.log(data)
 
-    Plotly.newPlot('container', data, layout);
+    function drawXSlider(){
+
+        d3.select('#slider-g').remove()
+      let sliderStep = d3.sliderBottom()
+                         .min(d3.min(xArray))
+                         .max(d3.max(xArray))
+                         .step(2)
+                         .width(500)
+                         .on('onchange',xVal=>{
+
+                            dataToDraw = [
+                               {
+                                 z: [],
+                                 type: 'surface'
+                               }
+                             ];
+
+                           for(let y=-30;y <= 28;y+=2){
+                               let zz = [];
+                               for(let z=-5;z <= 4.8; z +=0.2){
+                                   // console.log(i,j)
+                                   zz.push(findValue(xVal, y, z))
+                               }
+                               dataToDraw[0].z.push(zz)
+                           }
+                           console.log(dataToDraw)
+                           Plotly.react('container', dataToDraw, layout);
+                         })
+      let gStep = d3.select('#slider')
+                    .append('g')
+                    .attr('id','slider-g')
+                    .attr('transform', 'translate(30,30)')
+
+                    .call(sliderStep)
+    }
+
+    function drawYSlider(){
+      d3.select('#slider-g').remove()
+      let sliderStep = d3.sliderBottom()
+                         .min(d3.min(yArray))
+                         .max(d3.max(yArray))
+                         .step(2)
+                         .width(500)
+                         .on('onchange',val=>{
+                           console.log(val)
+                         })
+      let gStep = d3.select('#slider')
+                    .append('g')
+                    .attr('id','slider-g')
+                    .attr('transform', 'translate(30,30)')
+                    .call(sliderStep)
+
+    }
+
+    function drawZSlider(){
+      d3.select('#slider-g').remove()
+      let sliderStep = d3.sliderBottom()
+                         .min(d3.min(zArray))
+                         .max(d3.max(zArray))
+                         .tickFormat(d3.format('.2f'))
+                         .step(0.2)
+                         .width(500)
+                         .on('onchange',val=>{
+                           //draw the ployly
+                           console.log(val)
+                         })
+      let gStep = d3.select('#slider')
+                    .append('g')
+                    .attr('id','slider-g')
+                    .attr('transform', 'translate(30,30)')
+                    .call(sliderStep)
+
+    }
+
+
+
+    d3.select('#dimensions').on('change',changeDimension)
+    function findValue(xValue, yValue, zValue){
+      let kdeValue;
+      zValue = d3.format('.2')(zValue)
+      const xIndex = (xValue+70)/2
+      const yIndex = (yValue + 30)/2
+      const zIndex = (zValue*10+50)/2
+      return kde[zIndex + xIndex*1500 + yIndex * 50]['3dKDE']
+    }
+
+
+
+
+
     // d3.select("#js-plotly-tester")
         // .style("z-index",7)
         // .style("width",600)
@@ -142,18 +260,17 @@ d3.csv("../kde.csv").then(kde=>{
     //           md.turntable(yaw,pitch);
     //         }
     //       });
-    d3.select("#kde2d")
+    // d3.select("#kde2d")
+    //     .on("click",()=>{
+    //         console.log("clicking")
+    //         d3.select("#kde")
+    //             .style("visibility","visible");
+    //         d3.select(".plot-container")
+    //             .style("visibility","hidden");
+    //     })
+    d3.select("#kde_select")
         .on("click",()=>{
-            console.log("clicking")
-            d3.select("#kde")
-                .style("visibility","visible");
-            d3.select(".plot-container")
-                .style("visibility","hidden");
-        })
-    d3.select("#kde3d")
-        .on("click",()=>{
-            d3.select("#kde")
-                .style("visibility","hidden");
+
             d3.select(".plot-container")
                 .style("visibility","visible");
         })
