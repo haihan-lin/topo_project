@@ -5,6 +5,7 @@ from app import APP_ROOT
 from os import path
 from os.path import splitext
 import json
+import csv
 # import pandas
 import numpy as np
 import pandas as pd
@@ -29,13 +30,14 @@ def importFile():
 @app.route('/demoKDE', methods=['POST','GET'])
 def demoKDE():
     kde_path = path.join(APP_STATIC,'assets/kdeMesh3d.csv')
-    kde = pd.read_csv(kde_path)
-    kde = np.array(kde)
-    print(kde)
-    # with open(kde) as f:
+    csvfile = open(kde_path)
+    reader = csv.DictReader(csvfile,fieldnames = ('x','y','z','3dKDE'))
+    kde = json.dumps([row for row in reader])
+    ridge_path = path.join(APP_STATIC, 'assets/ridge.csv')
+    csvfile = open(ridge_path)
+    reader = csv.DictReader(csvfile,fieldnames = ('x','y','3dKDE','z'))
+    ridge = json.dumps([row for row in reader])
+    big_dump = {}
+    big_dump['kde'] = kde
 
-        # data = json.load(f)
-        # print(data)
-        # f.close()
-    
-    return jsonify(kde=kde)
+    return json.dumps({'kde' :kde,'ridge' : ridge})

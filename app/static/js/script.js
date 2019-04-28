@@ -10,10 +10,11 @@
 //   kde.onclick = (e) => {
 //     // e.preventDefault();
 //     // $("#vistype").val("nodelink3d")
-    
+
 //   }
 
-var content = new FormData();
+let content = new FormData();
+//let kde;
   // $("[data-parent='#accordion']").addClass('collapsed').attr('aria-expanded','false');
   // $(".panel-collapse").removeClass('show');
 $.ajax({
@@ -26,43 +27,16 @@ $.ajax({
     cache: false,
     dataType:'json',
     success: function (response) {
-      data=response;
-      console.log(data);
+    //  console.log(response)
+      src(response)
     },
     error: function (error) {
           console.log("error",error);
     }
   });
-
 let xArray = new Set([])
 let yArray = new Set([])
 let zArray = new Set([])
-console.log(kde)
-kde.forEach(dataEntry=>{
-  dataEntry.x = parseFloat(dataEntry.x)
-  dataEntry.y = parseFloat(dataEntry.y)
-  dataEntry.z =parseFloat( d3.format('.2f')(dataEntry.z))
-  dataEntry['3dKDE'] = parseFloat(dataEntry['3dKDE'])
-  xArray.add(dataEntry.x)
-  yArray.add(dataEntry.y)
-  zArray.add(dataEntry.z)
-})
-
-let xPoints = []
-let yPoints = []
-let zPoints = []
-ridge.forEach(dataEntry=>{
-  xPoints.push (parseFloat(dataEntry.x))
-  yPoints.push (parseFloat(dataEntry.y))
-  zPoints.push(parseFloat(dataEntry['3dKDE']))
-})
-console.log(ridge)
-
-let svgWidth = 600;
-let svgHeight = 600;
-xArray = Array.from(xArray).sort(d3.ascending)
-yArray = Array.from(yArray).sort(d3.ascending)
-zArray = Array.from(zArray).sort(d3.ascending)
 let layout = {
     autosize: false,
     uirevision:'true',
@@ -80,49 +54,124 @@ let layout = {
       zaxis:{title: 'Density'},}
 };
 
-let dataToDraw = [
-   {
-     x:zArray,
-     y:yArray,
-     z: [],
-     type: 'surface'
-   }
-   // {
-   //   x:[0],
-   //   y: [0],
-   //   z:[0],
-   //   type:'scatter3d'
-   // }
- ];
+function src(response) {
+    const kde = JSON.parse(response['kde'])
+    const ridge = JSON.parse(response['ridge'])
 
-for(let y=-30;y <= 28;y+=2){
-   let zz = [];
-   for(let z=-5;z <= 4.8; z +=0.2){
-       zz.push(findValue(0, y, z))
-   }
-   dataToDraw[0].z.push(zz)
-};
 
-Plotly.newPlot('container', dataToDraw, layout);
-let selectedDimension = 'x';
-drawXSlider()
-function changeDimension(){
+    kde.forEach(dataEntry=>{
+      dataEntry.x = parseFloat(dataEntry.x)
+      dataEntry.y = parseFloat(dataEntry.y)
+      dataEntry.z =parseFloat( d3.format('.2f')(dataEntry.z))
+      dataEntry['3dKDE'] = parseFloat(dataEntry['3dKDE'])
+      xArray.add(dataEntry.x)
+      yArray.add(dataEntry.y)
+      zArray.add(dataEntry.z)
+    })
+    d3.select('#dimensions').on('change',d=>{
+      changeDimension(kde)
+    })
+    let xPoints = []
+    let yPoints = []
+    let zPoints = []
+    ridge.forEach(dataEntry=>{
+      xPoints.push (parseFloat(dataEntry.x))
+      yPoints.push (parseFloat(dataEntry.y))
+      zPoints.push(parseFloat(dataEntry['3dKDE']))
+    })
+
+
+    let svgWidth = 600;
+    let svgHeight = 600;
+    xArray = Array.from(xArray).sort(d3.ascending)
+    yArray = Array.from(yArray).sort(d3.ascending)
+    zArray = Array.from(zArray).sort(d3.ascending)
+
+
+    let dataToDraw = [
+       {
+         x:zArray,
+         y:yArray,
+         z: [],
+         type: 'surface'
+       }
+       // {
+       //   x:[0],
+       //   y: [0],
+       //   z:[0],
+       //   type:'scatter3d'
+       // }
+     ];
+
+    for(let y=-30;y <= 28;y+=2){
+       let zz = [];
+       for(let z=-5;z <= 4.8; z +=0.2){
+           zz.push(findValue(0, y, z,kde))
+       }
+       dataToDraw[0].z.push(zz)
+    };
+
+    Plotly.newPlot('container', dataToDraw, layout);
+    let selectedDimension = 'x';
+    drawXSlider(kde)
+    d3.select("#kde_select")
+        .on("click",()=>{
+
+            d3.select(".plot-container")
+                .style("visibility","visible");
+        })
+
+    d3.select('#ridge_select')
+        .on('click',()=>{
+          dataToDraw = [
+             {
+               x:xArray,
+               y:yArray,
+               z: [],
+               type: 'surface'
+             },    {
+                  x:xPoints,
+                  y: yPoints,
+                  z:zPoints,
+                  type:'scatter3d'
+                }
+           ];
+           console.log(dataToDraw)
+         for(let y=-30;y <= 28;y+=2){
+             let zz = [];
+             for(let x=-70;x <= 68; x +=2){
+                 // console.log(i,j)
+                 zz.push(findValue(x, y, 2,kde))
+             }
+             dataToDraw[0].z.push(zz)
+         }
+         layout.scene={
+           xaxis:{title: 'X Value'},
+           yaxis:{title: 'Y Value'},
+           zaxis:{title: 'Density'},}
+         Plotly.react('container', dataToDraw, layout);
+        })
+
+
+
+}
+function changeDimension(kde){
   const form = document.getElementById('dimensions')
   if (form[0].checked){
     selectedDimension = 'x'
-    drawXSlider()
+    drawXSlider(kde)
   }
   else if (form[1].checked){
     selectedDimension = 'y'
-    drawYSlider()
+    drawYSlider(kde)
   }
   else if (form[2].checked){
     selectedDimension = 'z'
-    drawZSlider()
+    drawZSlider(kde)
   }
 }
 
-function drawXSlider(){
+function drawXSlider(kde){
     d3.select('#slider-g').remove()
     let sliderStep = d3.sliderBottom()
                      .min(d3.min(xArray))
@@ -142,7 +191,7 @@ function drawXSlider(){
                            let zz = [];
                            for(let z=-5;z <= 4.8; z +=0.2){
                                // console.log(i,j)
-                               zz.push(findValue(xVal, y, z))
+                               zz.push(findValue(xVal, y, z,kde))
                            }
                            dataToDraw[0].z.push(zz)
                        }
@@ -160,7 +209,7 @@ function drawXSlider(){
                 .call(sliderStep)
 }
 
-function drawYSlider(){
+function drawYSlider(kde){
   d3.select('#slider-g').remove()
   let sliderStep = d3.sliderBottom()
                      .min(d3.min(yArray))
@@ -181,7 +230,7 @@ function drawYSlider(){
                            let zz = [];
                            for(let z=-5;z <= 4.8; z +=0.2){
                                // console.log(i,j)
-                               zz.push(findValue(x, yVal, z))
+                               zz.push(findValue(x, yVal, z,kde))
                            }
                            dataToDraw[0].z.push(zz)
                        }
@@ -199,7 +248,7 @@ function drawYSlider(){
 
 }
 
-function drawZSlider(){
+function drawZSlider(kde){
   d3.select('#slider-g').remove()
   let sliderStep = d3.sliderBottom()
                      .min(d3.min(zArray))
@@ -221,7 +270,7 @@ function drawZSlider(){
                            let zz = [];
                            for(let x=-70;x <= 68; x +=2){
                                // console.log(i,j)
-                               zz.push(findValue(x, y, zVal))
+                               zz.push(findValue(x, y, zVal,kde))
                            }
                            dataToDraw[0].z.push(zz)
                        }
@@ -240,16 +289,14 @@ function drawZSlider(){
 }
 
 
-
-d3.select('#dimensions').on('change',changeDimension)
-function findValue(xValue, yValue, zValue){
+function findValue(xValue, yValue, zValue,kde){
   let kdeValue;
   zValue = d3.format('.2')(zValue)
   const xIndex = parseInt((xValue+70)/2)
   const yIndex = parseInt((yValue + 30)/2)
   const zIndex = parseInt((zValue*10+50)/2)
-
-  return kde[zIndex + xIndex*1500 + yIndex * 50]['3dKDE']
+  const result_index = parseInt(zIndex + xIndex*1500 + yIndex * 50)
+  return kde[result_index]['3dKDE']
 }
 
 
@@ -274,67 +321,67 @@ function findValue(xValue, yValue, zValue){
 // // console.log(xList)
 // console.log(xRange)
 // console.log(yRange)
-let xRange_new = {"min":-70,"max":70};
-let yRange_new = {"min":-30,"max":30};
-// let N = 100;
-let xStep = (xRange_new.max-xRange_new.min)/140;
-let yStep = (yRange_new.max-yRange_new.min)/60;
-// let xp = d3.range(N).map(i=>{
-//     return xRange_new.min + xStep*i;
-// })
-// let yp = d3.range(N).map(i=>{
-//     return yRange_new.min + yStep*i;
-// })
-// console.log(xp,yp)
-// let mesh_2d = []
-// for(let i=0;i<xp.length;i++){
-//     for(let j=0;j<yp.length;j++){
-//         mesh_2d.push({"x":xp[i],"y":yp[j],"kde":0})
+// let xRange_new = {"min":-70,"max":70};
+// let yRange_new = {"min":-30,"max":30};
+// // let N = 100;
+// let xStep = (xRange_new.max-xRange_new.min)/140;
+// let yStep = (yRange_new.max-yRange_new.min)/60;
+// // let xp = d3.range(N).map(i=>{
+// //     return xRange_new.min + xStep*i;
+// // })
+// // let yp = d3.range(N).map(i=>{
+// //     return yRange_new.min + yStep*i;
+// // })
+// // console.log(xp,yp)
+// // let mesh_2d = []
+// // for(let i=0;i<xp.length;i++){
+// //     for(let j=0;j<yp.length;j++){
+// //         mesh_2d.push({"x":xp[i],"y":yp[j],"kde":0})
+// //     }
+// // }
+//
+// //assign KDE value to each mesh
+// let maxKDE = 0;
+// for(let i=0;i<kde.length;i++){
+// //     let x = parseFloat(kde[i].x)
+// //     let y = parseFloat(kde[i].y)
+//     let d = parseFloat(kde[i]["2dKDE"])
+// //     // console.log(d)
+// //     let xId = Math.floor((x-xRange_new.min)/xStep);
+// //     let yId = Math.floor((y-yRange_new.min)/yStep);
+// //     let meshId = xId*100+yId;
+//     if(d>maxKDE){
+//         maxKDE = d;
 //     }
+// //     // *** TODO: some point may fall in the same mesh
+// //     mesh_2d[meshId].kde = d;
 // }
-
-//assign KDE value to each mesh
-let maxKDE = 0;
-for(let i=0;i<kde.length;i++){
-//     let x = parseFloat(kde[i].x)
-//     let y = parseFloat(kde[i].y)
-    let d = parseFloat(kde[i]["2dKDE"])
-//     // console.log(d)
-//     let xId = Math.floor((x-xRange_new.min)/xStep);
-//     let yId = Math.floor((y-yRange_new.min)/yStep);
-//     let meshId = xId*100+yId;
-    if(d>maxKDE){
-        maxKDE = d;
-    }
-//     // *** TODO: some point may fall in the same mesh
-//     mesh_2d[meshId].kde = d;
-}
-// console.log(mesh_2d)
-
-let xMap = d3.scaleLinear()
-            .domain([xRange_new.min, xRange_new.max])
-            .range([0, svgWidth]);
-let yMap = d3.scaleLinear()
-            .domain([yRange_new.min, yRange_new.max])
-            .range([0, svgHeight]);
-
-let colorMap = d3.scaleLinear()
-                .domain([0, maxKDE])
-                .range(["blue", 'red']);
-
-d3.select("#kde").append("g")
-    .attr("id","meshgroup");
-
-let kdeRect = d3.select("#meshgroup").selectAll("rect").data(kde);
-kdeRect.exit().remove();
-let newKdeRect = kdeRect.enter().append("rect");
-kdeRect = newKdeRect.merge(kdeRect);
-kdeRect
-    .attr("x",d=>xMap(d.x))
-    .attr("y",d=>yMap(d.y))
-    .attr("width",xMap(xStep))
-    .attr("height",yMap(yStep))
-    .attr("fill",d=>colorMap(d["2dKDE"]))
+// // console.log(mesh_2d)
+//
+// let xMap = d3.scaleLinear()
+//             .domain([xRange_new.min, xRange_new.max])
+//             .range([0, svgWidth]);
+// let yMap = d3.scaleLinear()
+//             .domain([yRange_new.min, yRange_new.max])
+//             .range([0, svgHeight]);
+//
+// let colorMap = d3.scaleLinear()
+//                 .domain([0, maxKDE])
+//                 .range(["blue", 'red']);
+//
+// d3.select("#kde").append("g")
+//     .attr("id","meshgroup");
+//
+// let kdeRect = d3.select("#meshgroup").selectAll("rect").data(kde);
+// kdeRect.exit().remove();
+// let newKdeRect = kdeRect.enter().append("rect");
+// kdeRect = newKdeRect.merge(kdeRect);
+// kdeRect
+//     .attr("x",d=>xMap(d.x))
+//     .attr("y",d=>yMap(d.y))
+//     .attr("width",xMap(xStep))
+//     .attr("height",yMap(yStep))
+//     .attr("fill",d=>colorMap(d["2dKDE"]))
     // .style("visibility","hidden")
     // .attr("fill","red")
     // .style("visibility","hidden")
@@ -372,43 +419,6 @@ kdeRect
 //         d3.select(".plot-container")
 //             .style("visibility","hidden");
 //     })
-d3.select("#kde_select")
-    .on("click",()=>{
-
-        d3.select(".plot-container")
-            .style("visibility","visible");
-    })
-
-d3.select('#ridge_select')
-    .on('click',()=>{
-      dataToDraw = [
-         {
-           x:xArray,
-           y:yArray,
-           z: [],
-           type: 'surface'
-         },    {
-              x:xPoints,
-              y: yPoints,
-              z:zPoints,
-              type:'scatter3d'
-            }
-       ];
-       console.log(dataToDraw)
-     for(let y=-30;y <= 28;y+=2){
-         let zz = [];
-         for(let x=-70;x <= 68; x +=2){
-             // console.log(i,j)
-             zz.push(findValue(x, y, 2))
-         }
-         dataToDraw[0].z.push(zz)
-     }
-     layout.scene={
-       xaxis:{title: 'X Value'},
-       yaxis:{title: 'Y Value'},
-       zaxis:{title: 'Density'},}
-     Plotly.react('container', dataToDraw, layout);
-    })
 
 // *** TODO: find local maximum & saddle of Morse complex
 
