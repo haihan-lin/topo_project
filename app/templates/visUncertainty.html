@@ -12,7 +12,10 @@
     <!-- <script src="https://unpkg.com/d3-3d/build/d3-3d.js"></script> -->
     <script src="js/surface3d.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="js/script.js" async></script>
+    {% assets "js" %}
+   <script type="text/javascript" src="{{ ASSET_URL }}" defer></script>
+   {% endassets %}
+
 
 </head>
 <body>
@@ -40,6 +43,12 @@
             	<input type='radio' id="z" name="mode">Z</input>
             </form></p>
             <p><input type="button" id="kde_select" value="KDE"></p>
+            <p><input type='button' id = 'ridge_select' value='Ridge'>
+            <p>
+                        <form method="post" id="upload" enctype="multipart/form-data" action="" >
+                            <input type="file"  id="files" name="files">
+                        </form>
+                    </p>
             </td>
           </tr>
 
