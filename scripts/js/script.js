@@ -16,8 +16,9 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
     xArray = Array.from(xArray).sort(d3.ascending)
     yArray = Array.from(yArray).sort(d3.ascending)
     zArray = Array.from(zArray).sort(d3.ascending)
-    const layout = {
+    let layout = {
         autosize: false,
+        uirevision:'true',
         width: 600,
         height: 600,
         margin: {
@@ -25,11 +26,17 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
             r: 50,
             b: 65,
             t: 90
-        }
+        },
+        scene:{
+          xaxis:{title: 'Z Value'},
+          yaxis:{title: 'Y Value'},
+          zaxis:{title: 'Density'},}
     };
 
     let dataToDraw = [
        {
+         x:zArray,
+         y:yArray,
          z: [],
          type: 'surface'
        }
@@ -44,7 +51,6 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
    for(let y=-30;y <= 28;y+=2){
        let zz = [];
        for(let z=-5;z <= 4.8; z +=0.2){
-           // console.log(i,j)
            zz.push(findValue(0, y, z))
        }
        dataToDraw[0].z.push(zz)
@@ -70,9 +76,8 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
     }
 
     function drawXSlider(){
-
         d3.select('#slider-g').remove()
-      let sliderStep = d3.sliderBottom()
+        let sliderStep = d3.sliderBottom()
                          .min(d3.min(xArray))
                          .max(d3.max(xArray))
                          .step(2)
@@ -80,11 +85,12 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
                          .on('onchange',xVal=>{
                             dataToDraw = [
                                {
+                                 x:zArray,
+                                 y:yArray,
                                  z: [],
                                  type: 'surface'
                                }
                              ];
-
                            for(let y=-30;y <= 28;y+=2){
                                let zz = [];
                                for(let z=-5;z <= 4.8; z +=0.2){
@@ -93,6 +99,10 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
                                }
                                dataToDraw[0].z.push(zz)
                            }
+                           layout.scene={
+                             xaxis:{title: 'Z Value'},
+                             yaxis:{title: 'Y Value'},
+                             zaxis:{title: 'Density'},}
                            Plotly.react('container', dataToDraw, layout);
                          })
       let gStep = d3.select('#slider')
@@ -113,6 +123,8 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
                          .on('onchange',yVal=>{
                             dataToDraw = [
                                {
+                                 x:zArray,
+                                 y:xArray,
                                  z: [],
                                  type: 'surface'
                                }
@@ -126,6 +138,10 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
                                }
                                dataToDraw[0].z.push(zz)
                            }
+                           layout.scene={
+                             xaxis:{title: 'Z Value'},
+                             yaxis:{title: 'X Value'},
+                             zaxis:{title: 'Density'},}
                            Plotly.react('container', dataToDraw, layout);
                          })
       let gStep = d3.select('#slider')
@@ -147,6 +163,8 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
                          .on('onchange',zVal=>{
                             dataToDraw = [
                                {
+                                 x:xArray,
+                                 y:yArray,
                                  z: [],
                                  type: 'surface'
                                }
@@ -160,6 +178,10 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
                                }
                                dataToDraw[0].z.push(zz)
                            }
+                           layout.scene={
+                             xaxis:{title: 'X Value'},
+                             yaxis:{title: 'Y Value'},
+                             zaxis:{title: 'Density'},}
                            Plotly.react('container', dataToDraw, layout);
                          })
       let gStep = d3.select('#slider')
@@ -176,9 +198,10 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
     function findValue(xValue, yValue, zValue){
       let kdeValue;
       zValue = d3.format('.2')(zValue)
-      const xIndex = (xValue+70)/2
-      const yIndex = (yValue + 30)/2
-      const zIndex = (zValue*10+50)/2
+      const xIndex = parseInt((xValue+70)/2)
+      const yIndex = parseInt((yValue + 30)/2)
+      const zIndex = parseInt((zValue*10+50)/2)
+
       return kde[zIndex + xIndex*1500 + yIndex * 50]['3dKDE']
     }
 
