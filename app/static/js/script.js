@@ -1,14 +1,43 @@
-let kde;
-let ridge;
-async function init(){
-  kde = await d3.csv("../static/assets/kdeMesh3d.csv")
-  ridge = await d3.csv('../static/assets/ridge.csv')
-}
-init();
+// let kde;
+// let ridge;
+// async function init(){
+//   kde = await d3.csv("static/assets/kdeMesh3d.csv")
+//   ridge = await d3.csv('static/assets/ridge.csv')
+// }
+// init();
+
+// let kde = document.getElementById('kde_select');
+//   kde.onclick = (e) => {
+//     // e.preventDefault();
+//     // $("#vistype").val("nodelink3d")
+    
+//   }
+
+var content = new FormData();
+  // $("[data-parent='#accordion']").addClass('collapsed').attr('aria-expanded','false');
+  // $(".panel-collapse").removeClass('show');
+$.ajax({
+    type: "POST",
+    enctype: 'multipart/form-data',
+    url: "/demoKDE",
+    data: content,
+    processData: false, //prevent jQuery from automatically transforming the data into a query string
+    contentType: false,
+    cache: false,
+    dataType:'json',
+    success: function (response) {
+      data=response;
+      console.log(data);
+    },
+    error: function (error) {
+          console.log("error",error);
+    }
+  });
 
 let xArray = new Set([])
 let yArray = new Set([])
 let zArray = new Set([])
+console.log(kde)
 kde.forEach(dataEntry=>{
   dataEntry.x = parseFloat(dataEntry.x)
   dataEntry.y = parseFloat(dataEntry.y)

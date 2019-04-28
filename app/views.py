@@ -25,3 +25,17 @@ def importFile():
         f.close()
 
     return jsonify(data)
+
+@app.route('/demoKDE', methods=['POST','GET'])
+def demoKDE():
+    kde_path = path.join(APP_STATIC,'assets/kdeMesh3d.csv')
+    kde = pd.read_csv(kde_path)
+    kde = np.array(kde)
+    print(kde)
+    # with open(kde) as f:
+
+        # data = json.load(f)
+        # print(data)
+        # f.close()
+    
+    return jsonify(kde=kde)
