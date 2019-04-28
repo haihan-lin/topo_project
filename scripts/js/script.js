@@ -6,7 +6,7 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
       dataEntry.x = parseFloat(dataEntry.x)
       dataEntry.y = parseFloat(dataEntry.y)
       dataEntry.z =parseFloat( d3.format('.2f')(dataEntry.z))
-    //  dataEntry['3dKDE'] = parseFloat(dataEntry['3dKDE'])
+      dataEntry['3dKDE'] = parseFloat(dataEntry['3dKDE'])
       xArray.add(dataEntry.x)
       yArray.add(dataEntry.y)
       zArray.add(dataEntry.z)
@@ -33,6 +33,12 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
          z: [],
          type: 'surface'
        }
+       // {
+       //   x:[0],
+       //   y: [0],
+       //   z:[0],
+       //   type:'scatter3d'
+       // }
      ];
 
    for(let y=-30;y <= 28;y+=2){
@@ -43,6 +49,7 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
        }
        dataToDraw[0].z.push(zz)
    };
+
    Plotly.newPlot('container', dataToDraw, layout);
     let selectedDimension = 'x';
     drawXSlider()
@@ -71,7 +78,6 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
                          .step(2)
                          .width(500)
                          .on('onchange',xVal=>{
-
                             dataToDraw = [
                                {
                                  z: [],
@@ -87,7 +93,6 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
                                }
                                dataToDraw[0].z.push(zz)
                            }
-                           console.log(dataToDraw)
                            Plotly.react('container', dataToDraw, layout);
                          })
       let gStep = d3.select('#slider')
@@ -105,8 +110,23 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
                          .max(d3.max(yArray))
                          .step(2)
                          .width(500)
-                         .on('onchange',val=>{
-                           console.log(val)
+                         .on('onchange',yVal=>{
+                            dataToDraw = [
+                               {
+                                 z: [],
+                                 type: 'surface'
+                               }
+                             ];
+
+                           for(let x=-70;x <= 68;x+=2){
+                               let zz = [];
+                               for(let z=-5;z <= 4.8; z +=0.2){
+                                   // console.log(i,j)
+                                   zz.push(findValue(x, yVal, z))
+                               }
+                               dataToDraw[0].z.push(zz)
+                           }
+                           Plotly.react('container', dataToDraw, layout);
                          })
       let gStep = d3.select('#slider')
                     .append('g')
@@ -124,9 +144,23 @@ d3.csv("../kdeMesh3d.csv").then(kde=>{
                          .tickFormat(d3.format('.2f'))
                          .step(0.2)
                          .width(500)
-                         .on('onchange',val=>{
-                           //draw the ployly
-                           console.log(val)
+                         .on('onchange',zVal=>{
+                            dataToDraw = [
+                               {
+                                 z: [],
+                                 type: 'surface'
+                               }
+                             ];
+
+                           for(let y=-30;y <= 28;y+=2){
+                               let zz = [];
+                               for(let x=-70;x <= 68; x +=2){
+                                   // console.log(i,j)
+                                   zz.push(findValue(x, y, zVal))
+                               }
+                               dataToDraw[0].z.push(zz)
+                           }
+                           Plotly.react('container', dataToDraw, layout);
                          })
       let gStep = d3.select('#slider')
                     .append('g')
