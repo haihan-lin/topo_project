@@ -124,8 +124,8 @@ function src(response) {
     d3.select("#kde_select")
         .on("click",()=>{
 
-            d3.select(".plot-container")
-                .style("visibility","visible");
+            dataToDraw = [mesh_matrix]
+            Plotly.react('container',dataToDraw, layout)
         })
 
     d3.select('#ridge_select')
@@ -156,10 +156,15 @@ function src(response) {
                   x:xPoints,
                   y: yPoints,
                   z:zPoints,
-                  type:'scatter3d'
+                  type:'scatter3d',
+                  mode:'markers',
+
+                  marker:{size:6,
+                    color: 'rgb(0,200,0)',
+                          opacity:0.6}
                 }
            ];
-        
+
         //  console.log(kde)
 
          Plotly.react('container', dataToDraw, layout);
