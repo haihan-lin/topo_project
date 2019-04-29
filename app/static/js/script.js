@@ -71,14 +71,14 @@ function src(response) {
     d3.select('#dimensions').on('change',d=>{
       changeDimension(kde)
     })
-    let xPoints = []
-    let yPoints = []
-    let zPoints = []
-    ridge.forEach(dataEntry=>{
-      xPoints.push (parseFloat(dataEntry.x))
-      yPoints.push (parseFloat(dataEntry.y))
-      zPoints.push(parseFloat(dataEntry['3dKDE']))
-    })
+    // let xPoints = []
+    // let yPoints = []
+    // let zPoints = []
+    // ridge.forEach(dataEntry=>{
+    //   xPoints.push (parseFloat(dataEntry.x))
+    //   yPoints.push (parseFloat(dataEntry.y))
+    //   zPoints.push(parseFloat(dataEntry['3dKDE']))
+    // })
 
 
     let svgWidth = 600;
@@ -110,6 +110,226 @@ function src(response) {
        }
        dataToDraw[0].z.push(zz)
     };
+    let mesh_matrix = dataToDraw[0]
+    console.log(mesh_matrix)
+
+    function constructMesh(matrix){
+      let mesh = [];
+      let X = matrix["x"]
+      let Y = matrix["y"]
+      let D = matrix["z"]
+      for(let i=0;i<X.length-1;i++){
+        for(let j=0;j<Y.length;j++){
+          // let idx = i*Y.length+j;
+          mesh.push([X[i],Y[j],D[j][i]])
+        }
+      }
+      return [mesh,X,Y];
+    }
+    
+
+    function find_max(mesh,X,Y){
+      let cps = [];
+      for(let i=0;i<X.length-2;i++){
+        for(let j=0;j<Y.length-1;j++){
+          if(i>0&&j>0){
+            let idx = i*Y.length+j;
+            let idx_1_1 = (i-1)*Y.length+j-1;
+            let idx0_1 = (i-1)*Y.length+j;
+            let idx1_1 = (i-1)*Y.length+j+1;
+            let idx_10 = i*Y.length+j-1;
+            let idx10 = i*Y.length+j+1;
+            let idx_11 = (i+1)*Y.length+j-1;
+            let idx01 = (i+1)*Y.length+j;
+            let idx11 = (i+1)*Y.length+j+1;
+            let f = mesh[idx][2];
+            let f_1_1 = mesh[idx_1_1][2];
+            let f0_1 = mesh[idx0_1][2];
+            let f1_1 = mesh[idx1_1][2];
+            let f_10 = mesh[idx_10][2];
+            let f10 = mesh[idx10][2];
+            let f_11 = mesh[idx_11][2];
+            let f01 = mesh[idx01][2];
+            let f11 = mesh[idx11][2];
+            if (f>=f_1_1 && f>=f0_1 && f>=f1_1 && f>=f_10 && f>=f10 && f>=f_11 && f>=f01 && f>=f11){
+              cps.push(mesh[idx]);
+            }
+
+
+          }
+        }
+      }
+      return cps;
+    }
+
+    function find_saddle(mesh,X,Y){
+      let cps = [];
+      for(let i=0;i<X.length-2;i++){
+        for(let j=0;j<Y.length-1;j++){
+          if(i>0&&j>0){
+            let idx = i*Y.length+j;
+            let idx_1_1 = (i-1)*Y.length+j-1;
+            let idx0_1 = (i-1)*Y.length+j;
+            let idx1_1 = (i-1)*Y.length+j+1;
+            let idx_10 = i*Y.length+j-1;
+            let idx10 = i*Y.length+j+1;
+            let idx_11 = (i+1)*Y.length+j-1;
+            let idx01 = (i+1)*Y.length+j;
+            let idx11 = (i+1)*Y.length+j+1;
+            let f = mesh[idx][2];
+            let f_1_1 = mesh[idx_1_1][2];
+            let f0_1 = mesh[idx0_1][2];
+            let f1_1 = mesh[idx1_1][2];
+            let f_10 = mesh[idx_10][2];
+            let f10 = mesh[idx10][2];
+            let f_11 = mesh[idx_11][2];
+            let f01 = mesh[idx01][2];
+            let f11 = mesh[idx11][2];
+            if ((f>=f_10 && f>=f10 && f<=f0_1 && f<=f01) || (f<=f_10 && f<=f10 && f>=f0_1 && f>=f01)){
+              cps.push(mesh[idx]);
+            }
+
+          }
+
+        }
+      }
+      return cps;
+    }
+    function calDist(loc1, loc2){
+      let dist = Math.sqrt(Math.pow(loc1[0]-loc2[0],2)+Math.pow(loc1[1]-loc2[1],2));
+      return dist;
+    }
+
+    function findMinPt(pt0, pts){
+      let dist = calDist(pt0,pts[0]);
+      let minPt = pts[0];
+      for(let i=1;i<pts.length;i++){
+          let disti = calDist(pt0,pts[i]);
+          if(disti < dist){
+              dist = disti;
+              minPt = pts[i]
+          }
+      }
+      return minPt
+    }
+
+    function find2MinPt(pt,pts){
+      let pt1 = findMinPt(pt,pts);
+      let idx1 = pts.indexOf(pt1);
+      let pts1 = pts.slice(0,idx1);
+      let pts2 = pts.slice(idx1+1);
+      let pts_new = pts1.concat(pts2);
+      let pt2 = findMinPt(pt,pts_new);
+      return [pt1,pt2];
+    }
+
+    function find_steepest_path(m1,m2,mesh,X,Y){
+      let stepX = (Math.max(...X)-Math.min(...X))/(X.length-1);
+      let stepY = (Math.max(...Y)-Math.min(...Y))/(Y.length-1);
+      let path = [];
+      let dirc_x = Math.round((m1[0]-m2[0])/Math.abs(m1[0]-m2[0]));
+      let dirc_y=0
+      if(Math.abs(m1[1]-m2[1])!=0){
+        dirc_y = Math.round((m1[1]-m2[1])/Math.abs(m1[1]-m2[1]));
+      } 
+      
+      let step_x = parseInt(Math.abs(m1[0]-m2[0])/stepX);
+      let step_y = parseInt(Math.abs(m1[1]-m2[1])/stepY);
+      let sx = 0;
+      let sy = 0;
+      let x_status = m1[0];
+      let y_status = m1[1];
+      let fv = m1[2];
+      let i = 0;
+      while((sx < step_x )|| (sy < step_y)){
+        i+=1
+        let pt1 = [x_status, y_status-dirc_y*stepY];
+        let pt2 = [x_status-dirc_x*stepX, y_status];
+        let idx1 = Math.round((pt1[0]-Math.min(...X))/stepX*Y.length+(pt1[1]-Math.min(...Y))/stepY);
+        let idx2 = Math.round((pt2[0]-Math.min(...X))/stepX*Y.length+(pt2[1]-Math.min(...Y))/stepY);
+        let d1 = mesh[idx1][2];
+        let d2 = mesh[idx2][2];
+        if (Math.abs(fv-d1) > Math.abs(fv-d2)){// d1 is steeper
+          if (sy<step_y){
+            path.push(mesh[idx1])
+            x_status = pt1[0]
+            y_status = pt1[1]
+            fv = d1
+            sy += 1
+          }
+          
+          else if(sx < step_x){
+            path.push(mesh[idx2])
+            x_status = pt2[0]
+            y_status = pt2[1]
+            fv = d2
+            sx += 1
+          } 
+        } 
+        else{
+          if (sx < step_x){
+            path.push(mesh[idx2])
+            x_status = pt2[0]
+            y_status = pt2[1]
+            fv = d2
+            sx += 1
+          }
+          else if(sy < step_y){
+            path.push(mesh[idx1])
+            x_status = pt1[0]
+            y_status = pt1[1]
+            fv = d1
+            sy += 1
+          }
+        }
+      }
+      return path
+    }
+
+    function stable_mani_saddle(saddle,mesh,cp_max,X,Y){
+      // let stepX = (Math.max(X)-Math.min(X))/(X.length-1);
+      // let stepY = (Math.max(Y)-Math.min(Y))/(Y.length-1);
+      // let i = (saddle[0]-Math.min(X))/stepX;
+      // let j = (saddle[1]-Math.min(Y))/stepY;
+      let maxes = find2MinPt(saddle,cp_max);
+      let max1 = maxes[0];
+      let max2 = maxes[1];
+      let path1 = find_steepest_path(saddle,max1,mesh,X,Y);
+      let path2 = find_steepest_path(saddle,max2,mesh,X,Y);
+      return [path1,path2];
+    }
+       
+    let result = constructMesh(mesh_matrix);
+    let mesh = result[0];
+    let X = result[1];
+    let Y = result[2];
+    console.log(mesh)
+        
+    let cp_max = find_max(mesh,X,Y)
+    let cp_saddle = find_saddle(mesh,X,Y); 
+    let paths = [];
+    for(let i=0;i<cp_saddle.length;i++){
+      let smani = stable_mani_saddle(cp_saddle[i],mesh,cp_max,X,Y);
+      paths.push(smani[0]);
+      paths.push(smani[1])
+    }
+    console.log(paths)
+    let xPoints = []
+    let yPoints = []
+    let zPoints = []
+    paths.forEach(p=>{
+      p.forEach(dataEntry=>{
+        xPoints.push (parseFloat(dataEntry[0]))
+        yPoints.push (parseFloat(dataEntry[1]))
+        zPoints.push(parseFloat(dataEntry[2]))
+      })
+      
+      
+      
+    })
+  
+
+
 
     Plotly.newPlot('container', dataToDraw, layout);
     let selectedDimension = 'x';
@@ -125,7 +345,7 @@ function src(response) {
         .on('click',()=>{
           dataToDraw = [
              {
-               x:xArray,
+               x:zArray,
                y:yArray,
                z: [],
                type: 'surface'
@@ -137,14 +357,16 @@ function src(response) {
                 }
            ];
            console.log(dataToDraw)
-         for(let y=-30;y <= 28;y+=2){
-             let zz = [];
-             for(let x=-70;x <= 68; x +=2){
-                 // console.log(i,j)
-                 zz.push(findValue(x, y, 2,kde))
-             }
+           for(let y=-30;y <= 28;y+=2){
+            let zz = [];
+            for(let z=-5;z <= 4.8; z +=0.2){
+                zz.push(findValue(0, y, z,kde))
+            }
              dataToDraw[0].z.push(zz)
+            //  console.log(zz)
          }
+         console.log(dataToDraw[0].z)
+        //  console.log(kde)
          layout.scene={
            xaxis:{title: 'X Value'},
            yaxis:{title: 'Y Value'},
