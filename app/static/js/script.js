@@ -144,6 +144,9 @@ function src(response) {
             paths.push(smani[0]);
             paths.push(smani[1])
           }
+          xPoints = []
+          yPoints = []
+          zPoints = []
 
           paths.forEach(p=>{
             p.forEach(dataEntry=>{
